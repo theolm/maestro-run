@@ -19,10 +19,6 @@ inputs:
     description: 'Resolution of the recorded video'
     required: false
     default: '360x780'
-  extra-args:
-    description: 'Maestro extra arguments (e.g --include-tags)'
-    required: false
-    default: ''
 
 runs:
   using: "composite"
