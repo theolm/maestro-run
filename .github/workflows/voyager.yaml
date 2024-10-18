@@ -1,0 +1,15 @@
+name: Voyager - Maestro tests
+on: pull_request
+jobs:
+  popcorn:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Maestro
+        uses: ./.github/actions/maestro_run
+        with:
+          apk-path: './sample/voyager-debug.apk'
+          test-name: 'maestro'
+          command: 'test ./sample/android-voyager-flow.yaml'

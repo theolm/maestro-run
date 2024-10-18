@@ -1,0 +1,60 @@
+name: 'maestro-run'
+description: 'Run a given Maestro flow/subflow in the Android emulator. Tha action outputs a report and a video.'
+
+inputs:
+  apk-path:
+      description: 'Full path for the apk'
+      required: true
+  test-name:
+      description: 'Name of the maestro test'
+      required: true
+  command:
+      description: 'Command to run on maestro: maestro { command }'
+      required: true
+  bit-rate:
+    description: 'Bit rate for the screenrecord command'
+    required: false
+    default: '3000000'
+  video-res:
+    description: 'Resolution of the recorded video'
+    required: false
+    default: '360x780'
+  extra-args:
+    description: 'Maestro extra arguments (e.g --include-tags)'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Maestro
+      shell: bash
+      run: |
+        curl -fsSL "https://get.maestro.mobile.dev" | bash
+        export PATH="$PATH":"$HOME/.maestro/bin"
+        maestro --version
+
+    - name: Enable KVM
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: run tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 31
+        profile: pixel_6_pro
+        ram-size: 8000M
+        heap-size: 600M
+        arch: x86_64
+        disable-animations: true
+        target: playstore
+        script: |
+          #!/bin/bash
+
+          adb install ${{ inputs.apk-path }}
+
+          # Run Maestro tests. Still needs to capture the exit status without stopping the script.
+          $HOME/.maestro/bin/maestro command
