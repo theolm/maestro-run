@@ -1,7 +1,7 @@
 name: Voyager - Maestro tests
 on: pull_request
 jobs:
-  popcorn:
+  uitest:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
