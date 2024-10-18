@@ -1,0 +1,9 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+.idea
+/caches/deviceStreaming.xml
+/misc.xml
+/vcs.xml
+/maestro-run.iml
+/modules.xml

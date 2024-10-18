@@ -1,0 +1,94 @@
+name: 'maestro-run'
+author: 'Theodoro Loureiro Mota'
+description: 'Run a given Maestro flow/subflow in the Android emulator. Tha action outputs a report and a video.'
+
+inputs:
+  apk-path:
+      description: 'Full path for the apk'
+      required: true
+  test-flow:
+    description: 'Path of the flow/flows to run'
+    required: true
+  report-name:
+    description: 'Name of the output report'
+    required: false
+    default: 'report'
+  emulator-api:
+    description: 'The android sdk version running on the emulator'
+    required: false
+    default: '31'
+  emulator-profile:
+    description: 'The emulator profile AKA device'
+    required: false
+    default: 'pixel_6_pro'
+  emulator-ram-size:
+    description: 'Ram used by the emulator'
+    required: false
+    default: '8000M'
+  emulator-heap-size:
+    description: 'Heap size used by the emulator'
+    required: false
+    default: '600M'
+  emulator-arch:
+    description: 'Architecture used by the emulator'
+    required: false
+    default: 'x86_64'
+  emulator-disable-animations:
+    description: 'Disable the animations in the emulator'
+    required: false
+    default: 'true'
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Maestro
+      shell: bash
+      run: |
+        curl -fsSL "https://get.maestro.mobile.dev" | bash
+        export PATH="$PATH":"$HOME/.maestro/bin"
+        maestro --version
+
+
+    - name: Enable KVM
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: run tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: ${{ inputs.emulator-api }}
+        profile: ${{ inputs.emulator-profile }}
+        ram-size: ${{ inputs.emulator-ram-size }}
+        heap-size: ${{ inputs.emulator-heap-size }}
+        arch: ${{ inputs.emulator-arch }}
+        disable-animations: ${{ inputs.emulator-disable-animations }}
+        target: playstore
+        script: |
+          #!/bin/bash
+          
+          adb install ${{ inputs.apk-path }}
+          
+          # Start screen recording with inputs for bit-rate and video resolution
+          adb shell "screenrecord --bugreport --size ${{ inputs.video-res }} --bit-rate ${{ inputs.bit-rate }} /data/local/tmp/maestro.mp4 & echo \$! > /data/local/tmp/screenrecord_pid.txt" &
+        
+          # Run Maestro tests. Still needs to capture the exit status without stopping the script.
+          $HOME/.maestro/bin/maestro test --format junit --output ~/${{ inputs.report-name }}.xml ${{ inputs.test-flow }} || true
+          
+          # Stop screen recording and pull the video file
+          adb shell "kill -2 \$(cat /data/local/tmp/screenrecord_pid.txt)" || true
+          sleep 1
+          adb pull /data/local/tmp/maestro.mp4 /home/runner/.maestro/tests/ || true
+
+    - name: Upload report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: "${{ inputs.report-name }}"
+        path: |
+          /home/runner/.maestro/tests/**/*
+          ~/${{ inputs.report-name }}.xml
