@@ -6,8 +6,8 @@ inputs:
   apk-path:
       description: 'Full path for the apk'
       required: true
-  test-flow:
-    description: 'Path of the flow/flows to run'
+  command:
+    description: 'Maestro command to run'
     required: true
   report-name:
     description: 'Name of the output report'
@@ -37,6 +37,10 @@ inputs:
     description: 'Disable the animations in the emulator'
     required: false
     default: 'true'
+  record:
+    description: 'Record the screen during the test'
+    required: false
+    default: 'true'
   bit-rate:
     description: 'Bit rate for the screenrecord command'
     required: false
@@ -50,16 +54,25 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Build maestro command
+      id: build_command
+      shell: bash
+      run: |
+        chmod +x ./maestro.sh
+        chmod +x ./build_final_command.kts
+        output=$(./build_final_command.kts "${{ inputs.command }}")
+        echo "COMMAND=${output}" >> $GITHUB_ENV
+
     - name: Install Maestro
+      if: steps.build_command.outcome == 'success'
       shell: bash
       run: |
         curl -fsSL "https://get.maestro.mobile.dev" | bash
         export PATH="$PATH":"$HOME/.maestro/bin"
         maestro --version
 
-
     - name: Enable KVM
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && steps.build_command.outcome == 'success'
       shell: bash
       run: |
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -67,7 +80,9 @@ runs:
         sudo udevadm trigger --name-match=kvm
 
     - name: run tests
+      if: steps.build_command.outcome == 'success'
       uses: reactivecircus/android-emulator-runner@v2
+      id: test
       with:
         api-level: ${{ inputs.emulator-api }}
         profile: ${{ inputs.emulator-profile }}
@@ -76,27 +91,19 @@ runs:
         arch: ${{ inputs.emulator-arch }}
         disable-animations: ${{ inputs.emulator-disable-animations }}
         target: playstore
-        script: |
-          #!/bin/bash
-          
-          adb install ${{ inputs.apk-path }}
-          
-          # Start screen recording with inputs for bit-rate and video resolution
-          adb shell "screenrecord --bugreport --size ${{ inputs.video-res }} --bit-rate ${{ inputs.bit-rate }} /data/local/tmp/maestro.mp4 & echo \$! > /data/local/tmp/screenrecord_pid.txt" &
-        
-          # Run Maestro tests. Still needs to capture the exit status without stopping the script.
-          $HOME/.maestro/bin/maestro test --format junit --output ~/${{ inputs.report-name }}.xml ${{ inputs.test-flow }} || true
-          
-          # Stop screen recording and pull the video file
-          adb shell "kill -2 \$(cat /data/local/tmp/screenrecord_pid.txt)" || true
-          sleep 1
-          adb pull /data/local/tmp/maestro.mp4 /home/runner/.maestro/tests/ || true
+        script: ./maestro.sh ${{ inputs.apk-path }} ${{ inputs.record }} ${{ inputs.video-res }} ${{ inputs.bit-rate }}
+
+    - name: Move reports
+      if: steps.build_command.outcome == 'success'
+      shell: bash
+      run: |
+          mv /home/runner/.maestro/tests/ ~/tests/
+          mv report.xml ~/tests/report.xml
 
     - name: Upload report
+      if: steps.build_command.outcome == 'success'
       uses: actions/upload-artifact@v4
-      if: always()
       with:
         name: "${{ inputs.report-name }}"
         path: |
-          /home/runner/.maestro/tests/**/*
-          ~/${{ inputs.report-name }}.xml
+          ~/tests/**/*

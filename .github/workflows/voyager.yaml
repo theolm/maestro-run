@@ -9,8 +9,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Maestro
+      - name: Run Maestro 1
         uses: './'
         with:
           apk-path: './sample/voyager-debug.apk'
-          test-flow: './sample/android-voyager-flow.yaml'
+          command: 'maestro test ./sample/android-voyager-flow.yaml'
+          report-name: 'report1'
+          record: 'true'
+
+      - name: Run Maestro 2
+        uses: './'
+        with:
+          apk-path: './sample/voyager-debug.apk'
+          report-name: 'report2'
+          command: 'maestro test ./sample/android-voyager-flow.yaml'
+          record: 'false'
+
+      - name: Run Maestro 3
+        uses: './'
+        with:
+          apk-path: './sample/voyager-debug.apk'
+          report-name: 'report3'
+          command: 'maestro test --format junit --output ~/teste.xml ./sample/android-voyager-flow.yaml'
