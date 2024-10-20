@@ -37,6 +37,14 @@ inputs:
     description: 'Disable the animations in the emulator'
     required: false
     default: 'true'
+  bit-rate:
+    description: 'Bit rate for the screenrecord command'
+    required: false
+    default: '3000000'
+  video-res:
+    description: 'Resolution of the recorded video'
+    required: false
+    default: '360x780'
 
 
 runs:
