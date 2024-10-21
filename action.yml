@@ -1,6 +1,9 @@
 name: 'maestro-run'
 author: 'Theodoro Loureiro Mota'
 description: 'Run a given Maestro flow/subflow in the Android emulator. Tha action outputs a report and a video.'
+branding:
+  icon: "smartphone"
+  color: "green"
 
 inputs:
   apk-path:
