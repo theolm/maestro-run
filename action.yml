@@ -42,7 +42,7 @@ inputs:
     required: false
     default: 'true'
   bit-rate:
-    description: 'Bit rate for the screenrecord command'
+    description: 'Bit rate for the recording'
     required: false
     default: '3000000'
   video-res:
