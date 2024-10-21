@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run UI Tests with Maestro
-        uses: theolm/maestro-run@v0.1.0-alpha
+        uses: theolm/maestro-run@v0.2.0-alpha
         with:
           apk-path: './path/to/your/app.apk'
           command: 'maestro test ./sample/android-voyager-flow.yaml'
