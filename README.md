@@ -42,7 +42,7 @@ jobs:
 
 | Name                          | Description                                                                           | Required | Default       |
 |-------------------------------|---------------------------------------------------------------------------------------|----------|---------------|
-| `app-path`                    | The path to your application file (.apk)                                              | Yes      | -             |
+| `apk-path`                    | The path to your application file (.apk)                                              | Yes      | -             |
 | `command`                     | The command to run on maestro. Be aware that some flags are forbiden (e.g. sharding). | Yes      | -             |
 | `report-name`                 | The name of the output report.                                                        | No       | 'report'      |
 | `emulator-api`                | The android sdk version running on the emulator                                       | No       | '31'          |
