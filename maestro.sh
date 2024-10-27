@@ -4,6 +4,7 @@ APK_PATH="$1"
 RECORD="$2"
 VIDEO_RES="$3"
 BIT_RATE="$4"
+TEST_PATH="$5"
 
 adb install "$APK_PATH"
 
@@ -12,8 +13,8 @@ if [ "$RECORD" = "true" ]; then \
   adb shell "screenrecord --bugreport --size $VIDEO_RES --bit-rate $BIT_RATE /data/local/tmp/maestro.mp4 & echo \$! > /data/local/tmp/screenrecord_pid.txt" & \
 fi
 
-# Run Maestro tests. Still needs to capture the exit status without stopping the script.
-$HOME/.maestro/bin/$COMMAND || true
+# Run Maestro tests.
+"$HOME/.maestro/bin/maestro" test --format junit --output "$HOME/.maestro/tests/report.xml" "$TEST_PATH" || true
 
 # Stop screen recording and pull the video file
 if [ "$RECORD" = "true" ]; then \

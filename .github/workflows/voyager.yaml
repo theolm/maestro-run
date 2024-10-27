@@ -13,6 +13,6 @@ jobs:
         uses: './'
         with:
           apk-path: './sample/voyager-debug.apk'
-          command: 'maestro test ./sample/android-voyager-flow.yaml'
+          test-path: './sample/android-voyager-flow.yaml'
           report-name: 'report1'
           record: 'true'

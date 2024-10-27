@@ -9,8 +9,8 @@ inputs:
   apk-path:
       description: 'Full path for the apk'
       required: true
-  command:
-    description: 'Maestro command to run'
+  test-path:
+    description: 'Path of yaml or folder containing the maestro tests'
     required: true
   report-name:
     description: 'Name of the output report'
@@ -57,17 +57,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Build maestro command
-      id: build_command
+    - name: Set script permission
       shell: bash
       run: |
-        chmod +x ./maestro.sh
-        chmod +x ./build_final_command.kts
-        output=$(./build_final_command.kts "${{ inputs.command }}")
-        echo "COMMAND=${output}" >> $GITHUB_ENV
+        chmod +x ${{ github.action_path }}/maestro.sh
 
     - name: Install Maestro
-      if: steps.build_command.outcome == 'success'
       shell: bash
       run: |
         curl -fsSL "https://get.maestro.mobile.dev" | bash
@@ -75,7 +70,7 @@ runs:
         maestro --version
 
     - name: Enable KVM
-      if: runner.os == 'Linux' && steps.build_command.outcome == 'success'
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -83,7 +78,6 @@ runs:
         sudo udevadm trigger --name-match=kvm
 
     - name: run tests
-      if: steps.build_command.outcome == 'success'
       uses: reactivecircus/android-emulator-runner@v2
       id: test
       with:
@@ -94,26 +88,24 @@ runs:
         arch: ${{ inputs.emulator-arch }}
         disable-animations: ${{ inputs.emulator-disable-animations }}
         target: playstore
-        script: ./maestro.sh ${{ inputs.apk-path }} ${{ inputs.record }} ${{ inputs.video-res }} ${{ inputs.bit-rate }}
-
-    - name: Move reports
-      if: steps.build_command.outcome == 'success'
-      shell: bash
-      run: |
-          mv /home/runner/.maestro/tests/ ~/tests/
-          mv report.xml ~/tests/report.xml
+        script: ${{ github.action_path }}/maestro.sh ${{ inputs.apk-path }} ${{ inputs.record }} ${{ inputs.video-res }} ${{ inputs.bit-rate }} ${{ inputs.test-path }}
 
     - name: Upload report
-      if: steps.build_command.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: "${{ inputs.report-name }}"
         path: |
-          ~/tests/**/*
+          /home/runner/.maestro/tests/**/*
 
     - name: Set action result
       if: always()
       shell: bash
       run: |
-        chmod +x ./action_result.kts
-        ./action_result.kts ~/tests/report.xml
+        chmod +x ${{ github.action_path }}/action_result.kts
+        ${{ github.action_path }}/action_result.kts /home/runner/.maestro/tests/report.xml
+
+    - name: Teardown
+      shell: bash
+      if: success()
+      run: |
+          rm -rf /home/runner/.maestro/tests/

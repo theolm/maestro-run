@@ -40,20 +40,20 @@ jobs:
 
 ## Inputs
 
-| Name                          | Description                                                                           | Required | Default       |
-|-------------------------------|---------------------------------------------------------------------------------------|----------|---------------|
-| `apk-path`                    | The path to your application file (.apk)                                              | Yes      | -             |
-| `command`                     | The command to run on maestro. Be aware that some flags are forbiden (e.g. sharding). | Yes      | -             |
-| `report-name`                 | The name of the output report.                                                        | No       | 'report'      |
-| `emulator-api`                | The android sdk version running on the emulator                                       | No       | '31'          |
-| `emulator-profile`            | The emulator profile AKA device                                                       | No       | 'pixel_6_pro' |
-| `emulator-ram-size`           | Ram used by the emulator                                                              | No       | '8000M'       |
-| `emulator-heap-size`          | Heap size used by the emulator                                                        | No       | '600M'        |
-| `emulator-arch`               | Architecture used by the emulator                                                     | No       | 'x86_64'      |
-| `emulator-disable-animations` | Disable the animations in the emulator                                                | No       | 'true'        |
-| `record`                      | Record the screen during the test                                                     | No       | 'true'        |
-| `bit-rate`                    | Bit rate for the recording                                                            | No       | '3000000'     |
-| `video-res`                   | Resolution of the recorded video                                                      | No       | '360x780'     |
+| Name                          | Description                                          | Required | Default       |
+|-------------------------------|------------------------------------------------------|----------|---------------|
+| `apk-path`                    | The path to your application file (.apk)             | Yes      | -             |
+| `test-path`                   | Path of yaml or folder containing the maestro tests. | Yes      | -             |
+| `report-name`                 | The name of the output report.                       | No       | 'report'      |
+| `emulator-api`                | The android sdk version running on the emulator      | No       | '31'          |
+| `emulator-profile`            | The emulator profile AKA device                      | No       | 'pixel_6_pro' |
+| `emulator-ram-size`           | Ram used by the emulator                             | No       | '8000M'       |
+| `emulator-heap-size`          | Heap size used by the emulator                       | No       | '600M'        |
+| `emulator-arch`               | Architecture used by the emulator                    | No       | 'x86_64'      |
+| `emulator-disable-animations` | Disable the animations in the emulator               | No       | 'true'        |
+| `record`                      | Record the screen during the test                    | No       | 'true'        |
+| `bit-rate`                    | Bit rate for the recording                           | No       | '3000000'     |
+| `video-res`                   | Resolution of the recorded video                     | No       | '360x780'     |
 
 ## Outputs
 
