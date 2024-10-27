@@ -110,3 +110,10 @@ runs:
         name: "${{ inputs.report-name }}"
         path: |
           ~/tests/**/*
+
+    - name: Set action result
+      if: always()
+      shell: bash
+      run: |
+        chmod +x ./action_result.kts
+        ./action_result.kts ~/tests/report.xml
