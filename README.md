@@ -33,9 +33,10 @@ jobs:
         uses: theolm/maestro-run@v0.2.0-alpha
         with:
           apk-path: './path/to/your/app.apk'
-          command: 'maestro test ./sample/android-voyager-flow.yaml'
+          test-path: 'path for the test yaml or folder'
           report-name: 'report_name'
           record: 'true'
+
 ```
 
 ## Inputs
